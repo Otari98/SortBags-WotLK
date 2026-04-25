@@ -211,7 +211,7 @@ function Move(src, dst)
 end
 
 function TooltipInfo(container, position)
-	local chargesPattern = '^' .. gsub(gsub(ITEM_SPELL_CHARGES_P1, '%%d', '(%%d+)'), '%%%d+%$d', '(%%d+)') .. '$'
+	local chargesPattern = '^' .. gsub(gsub(ITEM_SPELL_CHARGES, '%%d', '(%%d+)'), '%%%d+%$d', '(%%d+)') .. '$'
 
 	SortBagsTooltip:SetOwner(UIParent, 'ANCHOR_NONE')
 	SortBagsTooltip:ClearLines()
