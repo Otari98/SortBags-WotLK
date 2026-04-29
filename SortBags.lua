@@ -108,6 +108,7 @@ local CLASSES = {
 }
 
 local defaultDelay = .2
+local defaultTimeout = 7
 local model, itemStacks, itemClasses, itemSortKeys
 
 do
@@ -119,19 +120,20 @@ do
 	function Start()
 		if f:IsShown() then return end
 		Initialize()
-		timeout = GetTime() + 7
+		timeout = defaultTimeout
 		f:Show()
 	end
 
 	local delay = 0
-	f:SetScript('OnUpdate', function()
-		delay = delay - arg1
+	f:SetScript('OnUpdate', function(self, elapsed)
+		delay = delay - elapsed
+		timeout = timeout - elapsed
 		if delay <= 0 then
 			delay = defaultDelay
 
 			local complete = Sort()
-			if complete or GetTime() > timeout then
-				f:Hide()
+			if complete or timeout <= 0 then
+				self:Hide()
 				return
 			end
 			Stack()
@@ -210,9 +212,9 @@ function Move(src, dst)
     end
 end
 
-function TooltipInfo(container, position)
-	local chargesPattern = '^' .. gsub(gsub(ITEM_SPELL_CHARGES, '%%d', '(%%d+)'), '%%%d+%$d', '(%%d+)') .. '$'
+local chargesPattern = '^' .. gsub(gsub(ITEM_SPELL_CHARGES, '%%d', '(%%d+)'), '%%%d+%$d', '(%%d+)') .. '$'
 
+function TooltipInfo(container, position)
 	SortBagsTooltip:SetOwner(UIParent, 'ANCHOR_NONE')
 	SortBagsTooltip:ClearLines()
 
@@ -354,7 +356,7 @@ do
 
 		for _, slot in pairs(model) do
 			if slot.class then
-				for _, item in items do
+				for _, item in pairs(items) do
 					if itemClasses[item] == slot.class and assign(slot, item) then
 						break
 					end
@@ -475,7 +477,7 @@ function Item(container, position)
 
 		local key = format('%s:%s:%s:%s:%s:%s', itemID, enchantID, suffixID, uniqueID, charges, (soulbound and 1 or 0))
 
-		itemStacks[key] = stack
+		itemStacks[key] = stack > 0 and stack or GetItemCount(link, true)
 		itemSortKeys[key] = sortKey
 
 		for class, info in pairs(CLASSES) do
